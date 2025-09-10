@@ -1,16 +1,17 @@
-import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router'
-import MainLayouts from './layouts/MainLayouts'
-import Navbar from './components/navbar/navbar';
+import Navbar from './components/navbar/Navbar'
+import './App.css'
+import Profile from './page/Profile'
+import Home from './page/Home'
 
 function App() {
 
   return (
     <BrowserRouter>
-    <Navbar/>
+      <Navbar />
       <Routes>
-        <Route path='/' element={<MainLayouts/>}></Route>
-        {/* <Route path='/profile' element={}></Route> */}
+        <Route path='/' element={<Home />}></Route>
+        <Route path='/profile' element={<Profile />}></Route>
       </Routes>
     </BrowserRouter>
   )
