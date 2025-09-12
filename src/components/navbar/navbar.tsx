@@ -3,6 +3,7 @@ import { Link } from "react-router"; // use react-router-dom instead of react-ro
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -15,8 +16,31 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { Label } from "../ui/label";
 
-export default function Navbar() {
+export default function Navbar(props: { onLogin: any; onSignup: any; user: any; loginOpen: any; setLoginOpen: any; signupOpen: any; setSignupOpen: any }) {
+  //TODO: show error message, especially "name already exist";
+  //extract prop
+  const { onLogin, onSignup, user, loginOpen, setLoginOpen, signupOpen, setSignupOpen } = props;
+
   const [isLogin, setIsLogin] = useState(true);
+
+  //login usestate
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  //signup usestate
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [conpassword, setConPassword] = useState('');
+
+  const handleLoginClick = (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    onLogin(loginUsername, loginPassword);
+  }
+
+  const handleSignupClick = (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    onSignup(username, password, conpassword);
+  }
 
   return (
     <div className="sticky top-0 z-50 w-screen bg-[#f3f3f3] px-8 shadow-md h-24 flex justify-between items-center">
@@ -48,115 +72,119 @@ export default function Navbar() {
         </Button>
       </div>
 
-      {/* Auth Dialog (Login/Signup toggle) */}
-      <span className="auth-btn">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setIsLogin(true)}>
-              Login
-            </Button>
-          </DialogTrigger>
+      {user.user ?
+        <Link to='/profile'>
+          <img src="/vite.svg" alt="" className="border border-black rounded-full p-2" />
+        </Link>
+        :
+        <>
+          {/* Auth Dialog (Login/Signup toggle) */}
+          <span className="auth-btn">
+            <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setLoginOpen(true)}>Login</Button>
+              </DialogTrigger>
 
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-center text-3xl">
-                {isLogin ? "Login" : "Sign Up"}
-              </DialogTitle>
-            </DialogHeader>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="text-center text-3xl">Login</DialogTitle>
+                  <DialogDescription>Enter your username and password to log in.</DialogDescription>
+                </DialogHeader>
 
-            <form className="text-[#3f3f3f] grid gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="name">Username</Label>
-                <Input id="name" name="name" type="text" />
-              </div>
+                <form className="text-[#3f3f3f] grid gap-4">
+                  <div className="grid gap-3">
+                    <Label htmlFor="login-username">Username</Label>
+                    <Input
+                      id="login-username"
+                      value={loginUsername}
+                      onChange={e => setLoginUsername(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      value={loginPassword}
+                      onChange={e => setLoginPassword(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter className="grid gap-2 w-full">
+                    <Button className="w-full p-3" onClick={handleLoginClick}>Login</Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full text-sm"
+                      onClick={() => {
+                        setLoginOpen(false);
+                        setSignupOpen(true);
+                      }}
+                    >Don't have an account? Sign Up
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
 
-              <div className="grid gap-3">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" />
-              </div>
+            {/* sign up button   */}
+            <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-xl px-6 py-3" onClick={() => setSignupOpen(true)}>Sign Up</Button>
+              </DialogTrigger>
 
-              {!isLogin && (
-                <div className="grid gap-3">
-                  <Label htmlFor="c-password">Confirm Password</Label>
-                  <Input id="c-password" name="c-password" type="password" />
-                </div>
-              )}
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="text-center text-3xl">Sign Up</DialogTitle>
+                  <DialogDescription>Create your account</DialogDescription>
+                </DialogHeader>
 
-              <DialogFooter className="grid gap-2 w-full">
-                <Button type="submit" className="w-full py-3">
-                  {isLogin ? "Login" : "Register"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-sm"
-                  onClick={() => setIsLogin(!isLogin)}
-                >
-                  {isLogin
-                    ? "Don't have an account? Sign Up"
-                    : "Already have an account? Login"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* sign up button   */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="text-xl px-6 py-3" onClick={() => setIsLogin(false)}>
-              Sign up
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-center text-3xl">
-                {isLogin ? "Login" : "Sign Up"}
-              </DialogTitle>
-            </DialogHeader>
-
-            <form className="text-[#3f3f3f] grid gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="name">Username</Label>
-                <Input id="name" name="name" type="text" />
-              </div>
-
-              <div className="grid gap-3">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" />
-              </div>
-
-              {!isLogin && (
-                <div className="grid gap-3">
-                  <Label htmlFor="c-password">Confirm Password</Label>
-                  <Input id="c-password" name="c-password" type="password" />
-                </div>
-              )}
-
-              <DialogFooter className="grid gap-2 w-full">
-                <Button type="submit" className="w-full py-3">
-                  {isLogin ? "Login" : "Register"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-sm"
-                  onClick={() => setIsLogin(!isLogin)}
-                >
-                  {isLogin
-                    ? "Don't have an account? Sign Up"
-                    : "Already have an account? Login"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-        {/* profile btn placeholder */}
-      </span>
-      <Link to='/profile'>
-        <img src="/vite.svg" alt="" className="border border-black rounded-full p-2" />
-      </Link>
+                <form className="text-[#3f3f3f] grid gap-4">
+                  <div className="grid gap-3">
+                    <Label htmlFor="signup-username">Username</Label>
+                    <Input
+                      id="signup-username"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="signup-confirm">Confirm Password</Label>
+                    <Input
+                      id="signup-confirm"
+                      type="password"
+                      value={conpassword}
+                      onChange={e => setConPassword(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter className="grid gap-2 w-full">
+                    <Button className="w-full py-3" onClick={handleSignupClick}>Register</Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full text-sm"
+                      onClick={() => {
+                        setSignupOpen(false);
+                        setLoginOpen(true);
+                      }}>Already have an account? Login
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </span>
+        </>
+      }
     </div>
   );
 }
