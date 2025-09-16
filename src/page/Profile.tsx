@@ -19,13 +19,14 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
   })
 
   const handleEditUserName = async () => {
+    console.log(password)
     fetch(`http://localhost:8080/users/${user?.user?.id}`,{
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      body: JSON.stringify({ username: username})
+      body: JSON.stringify({ username: username, password: password})
     }).then(res => res.json())
       .then(data => {
         console.log(data);
@@ -34,20 +35,20 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
     
   }
 
-  const handleEditPassword = async () => {
-    fetch(`http://localhost:8080/users/${user?.user?.id}`,{
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({ password: password})
-        }).then(res => res.json())
-          .then(data => {
-            console.log(data);
-            dispatch({type: 'SET_USER', payload: data})
-          });
-  }
+  // const handleEditPassword = async () => {
+  //   fetch(`http://localhost:8080/users/${user?.user?.id}`,{
+  //         method: 'PUT',
+  //         headers: {
+  //           'Content-Type': 'application/json'
+  //         },
+  //         credentials: 'include',
+  //         body: JSON.stringify({ password: password})
+  //       }).then(res => res.json())
+  //         .then(data => {
+  //           console.log(data);
+  //           dispatch({type: 'SET_USER', payload: data})
+  //         });
+  // }
 
 
 
@@ -158,8 +159,8 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                     <span className="font-semibold text-gray-700 ">Username: </span>
                     {user?.user?.username || "Guest123"}
                     .......... {user?.user?.id}
-                    <Input placeholder={user?.user?.username} onSubmit={handleEditUserName} value={username} onChange={e=>setUsername(e.target.value)}/>
-                    <Button onClick={handleEditUserName}>Submit</Button>
+                    <Input placeholder={user?.user?.username} value={username} onChange={e=>setUsername(e.target.value)}/>
+                    {/* <Button onClick={handleEditUserName}>Submit</Button> */}
                   </div>
                   {/* <div>
                     <span className="font-semibold text-gray-700">Email: </span>
@@ -168,8 +169,8 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                   <div>
                     <span className="font-semibold text-gray-700">Password: </span>
                     **********
-                    <Input placeholder="******" onSubmit={handleEditPassword}  value={password} onChange={e=>setPassword(e.target.value)}/>
-                    <Button onClick={handleEditPassword}>Submit</Button>
+                    <Input placeholder="******"  value={password} onChange={e=>setPassword(e.target.value)}/>
+                    <Button onClick={handleEditUserName}>Submit</Button>
                   </div>
 
                   <Button
