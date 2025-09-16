@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 
 export default function Profile(props: { user: any; onLogout: () => void }) {
   const { user, onLogout } = props;
 
-  const [activeTab, setActiveTab] = useState<"profile" | "history">("profile");
+  const [activeTab, setActiveTab] = useState<"post" | "profile" | "history">("post");
 
   return (
     <div className="flex w-screen justify-center items-start h-full p-24">
@@ -35,22 +37,30 @@ export default function Profile(props: { user: any; onLogout: () => void }) {
           <CardContent className="flex flex-col gap-3">
             <Button
               variant="ghost"
-              className={`justify-start text-base px-6 py-3 rounded-lg transition-all duration-150 ${
-                activeTab === "profile"
-                  ? "bg-blue-100 text-blue-700 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`justify-start text-base px-6 py-3 rounded-lg transition-all duration-150 ${activeTab === "post"
+                ? "bg-blue-100 text-blue-700 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
+              onClick={() => setActiveTab("post")}
+            >
+              Post
+            </Button>
+            <Button
+              variant="ghost"
+              className={`justify-start text-base px-6 py-3 rounded-lg transition-all duration-150 ${activeTab === "profile"
+                ? "bg-blue-100 text-blue-700 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
               onClick={() => setActiveTab("profile")}
             >
               Profile Info
             </Button>
             <Button
               variant="ghost"
-              className={`justify-start text-base px-6 py-3 rounded-lg transition-all duration-150 ${
-                activeTab === "history"
-                  ? "bg-blue-100 text-blue-700 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`justify-start text-base px-6 py-3 rounded-lg transition-all duration-150 ${activeTab === "history"
+                ? "bg-blue-100 text-blue-700 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
               onClick={() => setActiveTab("history")}
             >
               Like History
@@ -62,44 +72,79 @@ export default function Profile(props: { user: any; onLogout: () => void }) {
       {/* Main Content */}
       <Card className="flex-1 h-[42rem] border border-gray-300 shadow-md rounded-xl py-0">
         <CardTitle className="px-8 py-5 text-3xl font-bold border-b border-gray-200 bg-gray-100 rounded-t-xl">
-          {activeTab === "profile" ? "Profile" : "Like History"}
+          {activeTab === "post" ? "Post" : activeTab === "profile" ? "Profile" : "Like History"}
         </CardTitle>
-        <CardContent className="px-10 py-6 text-lg overflow-y-auto">
-          {activeTab === "profile" ? (
-            <div className="flex flex-col gap-5">
-              <div>
-                <span className="font-semibold text-gray-700">Username: </span>
-                {user?.user?.username || "Guest123"}
+        <CardContent className="px-15 text-lg overflow-y-auto">
+          {activeTab === "post" ?
+            (
+              <div className="py-10 flex flex-col gap-10">
+                {[...new Array(3)].map(_ => {
+                  return (
+                    <Card className="overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="text-4xl">Some news headline</CardTitle>
+                        <CardDescription>News description...</CardDescription>
+                        <CardAction>29/11/2025</CardAction> {/*this is date published */}
+                      </CardHeader>
+                      <CardContent>
+                        {/* <p>Card Content</p> */}
+                        {/* we do img if theres any, ONLY IMG FROM API WE WONT DO IMG IN DB🙏 */}
+                        <img src="/vite.svg" alt="" className="w-3xs m-auto" />
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          variant={"ghost"}
+                          className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer">
+                          <FontAwesomeIcon
+                            icon={faThumbsUp}
+                            size="2xl"
+                          // style={{ color: isLiked ? "#1659df" : "#dcdfe5" }}
+                          />
+                          {/* {likeCount > 0 && <span>{likeCount}</span>} */}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
               </div>
-              <div>
-                <span className="font-semibold text-gray-700">Email: </span>
-                {user?.user?.gmail || "Guest123@gmail.com"}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">Password: </span>
-                {user?.user?.password || "*****"}
-              </div>
+            )
+            :
+            activeTab === "profile" ?
+              (
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <span className="font-semibold text-gray-700">Username: </span>
+                    {user?.user?.username || "Guest123"}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Email: </span>
+                    {user?.user?.gmail || "Guest123@gmail.com"}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Password: </span>
+                    {user?.user?.password || "*****"}
+                  </div>
 
-              <Button
-                className="w-fit mt-8 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow"
-                onClick={onLogout}
-              >
-                Logout
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <h2 className="font-semibold text-2xl mb-4 text-gray-800">
-                Recent Likes
-              </h2>
-              <ul className="list-disc pl-6 space-y-3 text-gray-700">
-                <li>How to build a multiplayer game in React</li>
-                <li>Top 10 UI libraries for 2025</li>
-                <li>Scaling Node.js with WebSockets</li>
-                <li>Tailwind tips for responsive design</li>
-              </ul>
-            </div>
-          )}
+                  <Button
+                    className="w-fit mt-8 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow"
+                    onClick={onLogout}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="font-semibold text-2xl mb-4 text-gray-800">
+                    Recent Likes
+                  </h2>
+                  <ul className="list-disc pl-6 space-y-3 text-gray-700">
+                    <li>How to build a multiplayer game in React</li>
+                    <li>Top 10 UI libraries for 2025</li>
+                    <li>Scaling Node.js with WebSockets</li>
+                    <li>Tailwind tips for responsive design</li>
+                  </ul>
+                </div>
+              )}
         </CardContent>
       </Card>
     </div>

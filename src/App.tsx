@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router'
-import Navbar from './components/navbar/navbar'
+import Navbar from './components/navbar/Navbar'
 import './App.css'
 import Profile from './page/Profile'
 import Home from './page/Home'
 import { UserContext } from './context/UserContext'
 import { useState, useEffect, useContext } from 'react'
+import NewsDetail from './page/NewsDetail'
 
 function App() {
   const { state, dispatch } = useContext(UserContext);
@@ -22,6 +23,7 @@ function App() {
         //console.log for testing
         dispatch({ type: 'SET_USER', payload: data });
       });
+    
   }, []);
 
   //handle login fnction
@@ -85,12 +87,17 @@ function App() {
       });
   }
 
+  const handleNewsPost = (headline: string, content: string) => {
+
+  }
+
   return (
     <BrowserRouter>
-      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} />
+      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} onPost={handleNewsPost}/>
       <Routes>
         <Route path='/' element={<Home />}></Route>
         <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} />}></Route>
+        <Route path='/news/:id' element={<NewsDetail/>}></Route>
       </Routes>
     </BrowserRouter>
   )
