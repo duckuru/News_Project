@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router'
-import Navbar from './components/navbar/Navbar'
+import Navbar from './components/navbar/navbar'
 import './App.css'
 import Profile from './page/Profile'
 import Home from './page/Home'
@@ -88,15 +88,26 @@ function App() {
   }
 
   const handleNewsPost = (headline: string, content: string) => {
-
+    console.log(headline, content);
+    fetch('http://localhost:8080/post/', {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ headline, content })
+    }).then(res => res.json())
+      .then(data => {
+        console.log(data);
+    });
   }
 
   return (
     <BrowserRouter>
       <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} onPost={handleNewsPost}/>
       <Routes>
-        <Route path='/' element={<Home />}></Route>
-        <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} />}></Route>
+        <Route path='/' element={<Home/>}></Route>
+        <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch}/>}></Route>
         <Route path='/news/:id' element={<NewsDetail/>}></Route>
       </Routes>
     </BrowserRouter>

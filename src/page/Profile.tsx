@@ -1,13 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
+import { Input } from "@/components/ui/input";
 
-export default function Profile(props: { user: any; onLogout: () => void }) {
-  const { user, onLogout } = props;
+export default function Profile(props: { user: any; onLogout: () => void; dispatch: any;}) {
+  const { user, onLogout, dispatch } = props;
 
   const [activeTab, setActiveTab] = useState<"post" | "profile" | "history">("post");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    // const getLikeHIstory = async () => {
+    //   fetch("/")
+    // }
+  })
+
+  const handleEditUserName = async () => {
+    fetch(`http://localhost:8080/users/${user?.user?.id}`,{
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ username: username})
+    }).then(res => res.json())
+      .then(data => {
+        console.log(data);
+        dispatch({type: 'SET_USER', payload: data})
+      });
+    
+  }
+
+  const handleEditPassword = async () => {
+    fetch(`http://localhost:8080/users/${user?.user?.id}`,{
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ password: password})
+        }).then(res => res.json())
+          .then(data => {
+            console.log(data);
+            dispatch({type: 'SET_USER', payload: data})
+          });
+  }
+
+
 
   return (
     <div className="flex w-screen justify-center items-start h-full p-24">
@@ -113,16 +155,21 @@ export default function Profile(props: { user: any; onLogout: () => void }) {
               (
                 <div className="flex flex-col gap-5">
                   <div>
-                    <span className="font-semibold text-gray-700">Username: </span>
+                    <span className="font-semibold text-gray-700 ">Username: </span>
                     {user?.user?.username || "Guest123"}
+                    .......... {user?.user?.id}
+                    <Input placeholder={user?.user?.username} onSubmit={handleEditUserName} value={username} onChange={e=>setUsername(e.target.value)}/>
+                    <Button onClick={handleEditUserName}>Submit</Button>
                   </div>
-                  <div>
+                  {/* <div>
                     <span className="font-semibold text-gray-700">Email: </span>
                     {user?.user?.gmail || "Guest123@gmail.com"}
-                  </div>
+                  </div> */}
                   <div>
                     <span className="font-semibold text-gray-700">Password: </span>
-                    {user?.user?.password || "*****"}
+                    **********
+                    <Input placeholder="******" onSubmit={handleEditPassword}  value={password} onChange={e=>setPassword(e.target.value)}/>
+                    <Button onClick={handleEditPassword}>Submit</Button>
                   </div>
 
                   <Button
