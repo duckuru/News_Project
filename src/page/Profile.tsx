@@ -4,53 +4,140 @@ import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader,
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router";
 
-export default function Profile(props: { user: any; onLogout: () => void; dispatch: any;}) {
-  const { user, onLogout, dispatch } = props;
+export default function Profile(props: { user: any; onLogout: () => void; dispatch: any; isLoading: any }) {
+  const { user, onLogout, dispatch, isLoading } = props;
 
   const [activeTab, setActiveTab] = useState<"post" | "profile" | "history">("post");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [conPassword, setConPassword] = useState('');
+
+  const [post, setPost] = useState();
+  const [likedPost, setLikedPost] = useState();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // const getLikeHIstory = async () => {
-    //   fetch("/")
-    // }
-  })
+    //fetch user's post
+    const fetchPostByAuthor = () => {
+      fetch(`http://localhost:8080/post/author/${user?.user?.id}?userId=${user?.user?.id || ''}`, {
+        credentials: 'include'
+      })
+        .then(res => res.json())
+        .then(data => {
+          setPost(data);
+        });
+    }
+    //fetch user's like history
+    const fetchLikeHistory = () => {
+      fetch(`http://localhost:8080/post/user/${user?.user?.id}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log(data);
+          setLikedPost(data);
+        })
+    }
 
-  const handleEditUserName = async () => {
-    console.log(password)
-    fetch(`http://localhost:8080/users/${user?.user?.id}`,{
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ username: username, password: password})
-    }).then(res => res.json())
-      .then(data => {
-        console.log(data);
-        dispatch({type: 'SET_USER', payload: data})
-      });
-    
+    if (isLoading) return;
+
+    if (user.user) {
+      setUsername(user?.user?.username);
+      setPassword(user?.user?.password)
+      fetchPostByAuthor();
+      fetchLikeHistory();
+    } else {
+      navigate('/');
+    }
+
+
+  }, [user, isLoading]);
+
+  const handleUpdateInfo = async () => {
+    console.log(password, newPassword, conPassword)
+    if (username && newPassword && conPassword) {
+      if (newPassword == conPassword) {
+        fetch(`http://localhost:8080/users/${user?.user?.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ username: username, password: newPassword })
+        }).then(res => res.json())
+          .then(data => {
+            console.log(data);
+            dispatch({ type: 'SET_USER', payload: data })
+            setNewPassword('');
+            setConPassword('');
+          });
+      }
+    }
   }
 
-  // const handleEditPassword = async () => {
-  //   fetch(`http://localhost:8080/users/${user?.user?.id}`,{
-  //         method: 'PUT',
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         },
-  //         credentials: 'include',
-  //         body: JSON.stringify({ password: password})
-  //       }).then(res => res.json())
-  //         .then(data => {
-  //           console.log(data);
-  //           dispatch({type: 'SET_USER', payload: data})
-  //         });
-  // }
+  const handleLikeClick = (postId: number, liked: boolean, tab: "post" | "history") => {
+    if (!user?.user) return;
 
+    const url = `http://localhost:8080/post/${liked ? "unlike" : "like"}`;
 
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ postId }),
+    })
+      .then(res => {
+        if (res.ok) {
+          if (tab === "post") {
+            // Update post tab
+            setPost((prev: any) =>
+              prev.map((p: any) =>
+                p.id === postId
+                  ? {
+                    ...p,
+                    likedByCurrentUser: !liked,
+                    likeCount: liked ? p.likeCount - 1 : p.likeCount + 1,
+                  }
+                  : p
+              )
+            );
+
+            // Add to likedPost if just liked
+            if (!liked) {
+              const likedItem = post?.find((p: any) => p.id === postId);
+              if (likedItem) {
+                setLikedPost((prev: any) => [
+                  ...prev,
+                  { ...likedItem, likedByCurrentUser: true, likeCount: likedItem.likeCount + 1 },
+                ]);
+              }
+            } else {
+              // Remove from likedPost if unliked
+              setLikedPost((prev: any) => prev.filter((p: any) => p.id !== postId));
+            }
+          } else if (tab === "history") {
+            // Remove immediately from history if unliked
+            if (liked) {
+              setLikedPost((prev: any) => prev.filter((p: any) => p.id !== postId));
+
+              // Also update post tab
+              setPost((prev: any) =>
+                prev.map((p: any) =>
+                  p.id === postId
+                    ? { ...p, likedByCurrentUser: false, likeCount: p.likeCount - 1 }
+                    : p
+                )
+              );
+            }
+          }
+        } else {
+          res.text().then(msg => console.error(msg));
+        }
+      })
+      .catch(err => console.error(err));
+  };
 
   return (
     <div className="flex w-screen justify-center items-start h-full p-24">
@@ -66,10 +153,10 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
             />
             <div>
               <CardTitle className="text-lg font-semibold">
-                {user?.user?.username || "Guest123"}
+                {user?.user?.username}
               </CardTitle>
               <p className="text-sm text-gray-500">
-                {user?.user?.gmail || "Guest123@gmail.com"}
+                {/* {user?.user?.gmail || "Guest123@gmail.com"} */}
               </p>
             </div>
           </CardContent>
@@ -84,7 +171,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                 ? "bg-blue-100 text-blue-700 font-semibold"
                 : "text-gray-600 hover:bg-gray-100"
                 }`}
-              onClick={() => setActiveTab("post")}
+              onClick={() => { setActiveTab("post"); setUsername(user?.user?.username); }}
             >
               Post
             </Button>
@@ -104,11 +191,17 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                 ? "bg-blue-100 text-blue-700 font-semibold"
                 : "text-gray-600 hover:bg-gray-100"
                 }`}
-              onClick={() => setActiveTab("history")}
+              onClick={() => { setActiveTab("history"); setUsername(user?.user?.username); }}
             >
               Like History
             </Button>
           </CardContent>
+          <Button
+            className="cursor-pointer w-fit mt-auto mb-5 justify-start ml-10 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow"
+            onClick={() => { navigate('/'); onLogout() }}
+          >
+            Logout
+          </Button>
         </Card>
       </div>
 
@@ -121,29 +214,31 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
           {activeTab === "post" ?
             (
               <div className="py-10 flex flex-col gap-10">
-                {[...new Array(3)].map(_ => {
+                {post?.map(p => {
                   return (
                     <Card className="overflow-hidden">
                       <CardHeader>
-                        <CardTitle className="text-4xl">Some news headline</CardTitle>
-                        <CardDescription>News description...</CardDescription>
+                        <CardTitle className="text-4xl">{p.headline}</CardTitle>
+                        <CardDescription>{p.content}</CardDescription>
                         <CardAction>29/11/2025</CardAction> {/*this is date published */}
                       </CardHeader>
                       <CardContent>
                         {/* <p>Card Content</p> */}
                         {/* we do img if theres any, ONLY IMG FROM API WE WONT DO IMG IN DB🙏 */}
-                        <img src="/vite.svg" alt="" className="w-3xs m-auto" />
+                        {p.img ? <img src="/vite.svg" alt="" className="w-3xs m-auto" /> : <></>}
                       </CardContent>
                       <CardFooter>
                         <Button
                           variant={"ghost"}
-                          className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer">
+                          onClick={() => handleLikeClick(p.id, p.likedByCurrentUser, "post")}
+                          className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
+                        >
                           <FontAwesomeIcon
                             icon={faThumbsUp}
                             size="2xl"
-                          // style={{ color: isLiked ? "#1659df" : "#dcdfe5" }}
+                            style={{ color: p.likedByCurrentUser ? "#1659df" : "#dcdfe5" }}
                           />
-                          {/* {likeCount > 0 && <span>{likeCount}</span>} */}
+                          {p.likeCount > 0 && <span className="ml-2">{p.likeCount}</span>}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -157,9 +252,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                 <div className="flex flex-col gap-5">
                   <div>
                     <span className="font-semibold text-gray-700 ">Username: </span>
-                    {user?.user?.username || "Guest123"}
-                    .......... {user?.user?.id}
-                    <Input placeholder={user?.user?.username} value={username} onChange={e=>setUsername(e.target.value)}/>
+                    <Input value={username} onChange={e => setUsername(e.target.value)} />
                     {/* <Button onClick={handleEditUserName}>Submit</Button> */}
                   </div>
                   {/* <div>
@@ -167,18 +260,22 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                     {user?.user?.gmail || "Guest123@gmail.com"}
                   </div> */}
                   <div>
-                    <span className="font-semibold text-gray-700">Password: </span>
-                    **********
-                    <Input placeholder="******"  value={password} onChange={e=>setPassword(e.target.value)}/>
-                    <Button onClick={handleEditUserName}>Submit</Button>
+                    <span className="font-semibold text-gray-700">Current Password: </span>
+                    <Input type="password" value={password} onChange={e => setPassword(e.target.value)} disabled />
                   </div>
 
-                  <Button
-                    className="w-fit mt-8 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow"
-                    onClick={onLogout}
-                  >
-                    Logout
-                  </Button>
+                  <div>
+                    <span className="font-semibold text-gray-700">New Password: </span>
+                    <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                  </div>
+
+                  <div>
+                    <span className="font-semibold text-gray-700">Confirm Password: </span>
+                    <Input type="password" value={conPassword} onChange={e => setConPassword(e.target.value)} />
+                  </div>
+
+                  <Button className="mx-auto w-80 py-5 cursor-pointer" onClick={handleUpdateInfo}>Submit</Button>
+
                 </div>
               ) : (
                 <div>
@@ -186,10 +283,36 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                     Recent Likes
                   </h2>
                   <ul className="list-disc pl-6 space-y-3 text-gray-700">
-                    <li>How to build a multiplayer game in React</li>
-                    <li>Top 10 UI libraries for 2025</li>
-                    <li>Scaling Node.js with WebSockets</li>
-                    <li>Tailwind tips for responsive design</li>
+                    {likedPost?.map(p => {
+                      return (
+                        <Card className="overflow-hidden">
+                          <CardHeader>
+                            <CardTitle className="text-4xl">{p.headline}</CardTitle>
+                            <CardDescription>{p.content}</CardDescription>
+                            <CardAction>29/11/2025</CardAction> {/*this is date published */}
+                          </CardHeader>
+                          <CardContent>
+                            {/* <p>Card Content</p> */}
+                            {/* we do img if theres any, ONLY IMG FROM API WE WONT DO IMG IN DB🙏 */}
+                            {p.img ? <img src="/vite.svg" alt="" className="w-3xs m-auto" /> : <></>}
+                          </CardContent>
+                          <CardFooter>
+                            <Button
+                              variant={"ghost"}
+                              onClick={() => handleLikeClick(p.id, p.likedByCurrentUser, "history")}
+                              className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
+                            >
+                              <FontAwesomeIcon
+                                icon={faThumbsUp}
+                                size="2xl"
+                                style={{ color: p.likedByCurrentUser ? "#1659df" : "#dcdfe5" }}
+                              />
+                              {p.likeCount > 0 && <span className="ml-2">{p.likeCount}</span>}
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      );
+                    })}
                   </ul>
                 </div>
               )}

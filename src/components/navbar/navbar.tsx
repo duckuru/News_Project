@@ -18,10 +18,10 @@ import { faMagnifyingGlass, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 
-export default function Navbar(props: { onLogin: any; onSignup: any; user: any; loginOpen: any; setLoginOpen: any; signupOpen: any; setSignupOpen: any, onPost: any}) {
+export default function Navbar(props: { onLogin: any; onSignup: any; user: any; loginOpen: any; setLoginOpen: any; signupOpen: any; setSignupOpen: any, onPost: any; postOpen: any; setPostOpen: any; }) {
   //TODO: show error message, especially "name already exist";
   //extract prop
-  const { onLogin, onSignup, user, loginOpen, setLoginOpen, signupOpen, setSignupOpen, onPost } = props;
+  const { onLogin, onSignup, user, loginOpen, setLoginOpen, signupOpen, setSignupOpen, onPost, postOpen, setPostOpen } = props;
 
   //login usestate
   const [loginUsername, setLoginUsername] = useState('');
@@ -46,7 +46,7 @@ export default function Navbar(props: { onLogin: any; onSignup: any; user: any; 
     onSignup(username, password, conpassword);
   }
 
-  const handleNewsPost = (e: { preventDefault: () => void;}) => {
+  const handleNewsPost = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     onPost(headline, content);
   }
@@ -80,43 +80,45 @@ export default function Navbar(props: { onLogin: any; onSignup: any; user: any; 
           <FontAwesomeIcon icon={faMagnifyingGlass} style={{ color: "#3f3f3f" }} />
         </Button>
       </div>
-      <Dialog>
-        <DialogTrigger asChild>
-          <FontAwesomeIcon icon={faPlus} style={{ color: "#3f3f3f" }} />
-          {/* <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setLoginOpen(true)}>Login</Button> */}
-        </DialogTrigger>
-
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-center text-3xl">Create Post</DialogTitle>
-            <DialogDescription>Upload your news to the world!</DialogDescription>
-          </DialogHeader>
-
-          <form className="text-[#3f3f3f] grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="news-headline">Headline</Label>
-              <Input
-                id="news-headline"
-                value={headline}
-                onChange={e => setHeadline(e.target.value)}
-                autoFocus
-                maxLength={60}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="news-content">Content</Label>
-              <Textarea id="news-content" className="resize-none" maxLength={300} rows={6} value={content} onChange={e => setContent(e.target.value)}/>
-            </div>
-            <DialogFooter className="grid gap-2 w-full">
-              <Button className="w-full p-3" onClick={handleNewsPost}>Upload</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
       {user.user ?
-        <Link to='/profile'>
-          <img src="/vite.svg" alt="" className="border border-black rounded-full p-2" />
-        </Link>
+        <>
+          <Dialog  open={postOpen} onOpenChange={setPostOpen}>
+            <DialogTrigger asChild>
+              <FontAwesomeIcon icon={faPlus} style={{ color: "#3f3f3f" }} />
+              {/* <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setLoginOpen(true)}>Login</Button> */}
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="text-center text-3xl">Create Post</DialogTitle>
+                <DialogDescription>Upload your news to the world!</DialogDescription>
+              </DialogHeader>
+
+              <form className="text-[#3f3f3f] grid gap-4">
+                <div className="grid gap-3">
+                  <Label htmlFor="news-headline">Headline</Label>
+                  <Input
+                    id="news-headline"
+                    value={headline}
+                    onChange={e => setHeadline(e.target.value)}
+                    autoFocus
+                    maxLength={60}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="news-content">Content</Label>
+                  <Textarea id="news-content" className="resize-none" maxLength={300} rows={6} value={content} onChange={e => setContent(e.target.value)} />
+                </div>
+                <DialogFooter className="grid gap-2 w-full">
+                  <Button className="w-full p-3" onClick={handleNewsPost}>Upload</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <Link to='/profile'>
+            <img src="/vite.svg" alt="" className="border border-black rounded-full p-2" />
+          </Link>
+        </>
         :
         <>
           {/* Auth Dialog (Login/Signup toggle) */}

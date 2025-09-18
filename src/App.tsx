@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router'
-import Navbar from './components/navbar/navbar'
+import { BrowserRouter, Routes, Route} from 'react-router'
+import Navbar from './components/navbar/Navbar'
 import './App.css'
 import Profile from './page/Profile'
 import Home from './page/Home'
@@ -13,6 +13,9 @@ function App() {
   //state for open and close dialog(login, signup dialog)
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
+  const [postOpen, setPostOpen] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   //useEffect for getting user data after login and setting up user, else it will disappear on refresh
   useEffect(() => {
@@ -20,9 +23,9 @@ function App() {
       credentials: 'include'
     }).then(res => res.json())
       .then(data => {
-        //console.log for testing
         dispatch({ type: 'SET_USER', payload: data });
-      });
+      })
+      .finally(() => setIsLoading(false));
     
   }, []);
 
@@ -99,16 +102,17 @@ function App() {
     }).then(res => res.json())
       .then(data => {
         console.log(data);
+        setPostOpen(false);
     });
   }
 
   return (
     <BrowserRouter>
-      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} onPost={handleNewsPost}/>
+      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} onPost={handleNewsPost} postOpen={postOpen} setPostOpen={setPostOpen}/>
       <Routes>
-        <Route path='/' element={<Home/>}></Route>
-        <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch}/>}></Route>
-        <Route path='/news/:id' element={<NewsDetail/>}></Route>
+        <Route path='/' element={<Home user={state} isLoading={isLoading}/>}></Route>
+        <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch} isLoading={isLoading}/>}></Route>
+        <Route path='/news/:id' element={<NewsDetail user={state}/>}></Route>
       </Routes>
     </BrowserRouter>
   )
