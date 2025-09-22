@@ -80,9 +80,9 @@ export default function Navbar(props: {
     onSignup(username, password, conpassword);
   };
 
-  const handleNewsPost = (e) => {
+  const handleNewsPost = async () => {
     console.log(headline, postCategory, content);
-    e.preventDefault();
+    // e.preventDefault();
     fetch('http://localhost:8080/post/', {
       method: "POST",
       credentials: 'include',

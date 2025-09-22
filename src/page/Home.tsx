@@ -30,7 +30,7 @@ export default function Home(props: { user: any; isLoading: any; }) {
     })
       .then(res => res.json())
       .then((data) => {
-        console.log(data);
+        console.log("Fetch news", data);
         setNews(data);
         // dispatch({type: 'SET_NEWS', payload: data});
       })
