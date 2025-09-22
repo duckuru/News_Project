@@ -172,7 +172,7 @@ export default function Profile(props: {
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
-          window.location.reload();
+          // window.location.reload();
         });
         
   };
