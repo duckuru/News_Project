@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router";
+import { handleLikeClick } from "@/function/LikeFunction";
 
 export default function Profile(props: { user: any; onLogout: () => void; dispatch: any; isLoading: any }) {
   const { user, onLogout, dispatch, isLoading } = props;
@@ -15,8 +16,8 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
   const [newPassword, setNewPassword] = useState('');
   const [conPassword, setConPassword] = useState('');
 
-  const [post, setPost] = useState();
-  const [likedPost, setLikedPost] = useState();
+  const [news, setNews] = useState();
+  const [likedNews, setLikedNews] = useState(); //state to track user liked post
 
   const navigate = useNavigate();
 
@@ -28,7 +29,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
       })
         .then(res => res.json())
         .then(data => {
-          setPost(data);
+          setNews(data);
         });
     }
     //fetch user's like history
@@ -37,7 +38,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
         .then(res => res.json())
         .then(data => {
           console.log(data);
-          setLikedPost(data);
+          setLikedNews(data);
         })
     }
 
@@ -76,68 +77,6 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
       }
     }
   }
-
-  const handleLikeClick = (postId: number, liked: boolean, tab: "post" | "history") => {
-    if (!user?.user) return;
-
-    const url = `http://localhost:8080/post/${liked ? "unlike" : "like"}`;
-
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ postId }),
-    })
-      .then(res => {
-        if (res.ok) {
-          if (tab === "post") {
-            // Update post tab
-            setPost((prev: any) =>
-              prev.map((p: any) =>
-                p.id === postId
-                  ? {
-                    ...p,
-                    likedByCurrentUser: !liked,
-                    likeCount: liked ? p.likeCount - 1 : p.likeCount + 1,
-                  }
-                  : p
-              )
-            );
-
-            // Add to likedPost if just liked
-            if (!liked) {
-              const likedItem = post?.find((p: any) => p.id === postId);
-              if (likedItem) {
-                setLikedPost((prev: any) => [
-                  ...prev,
-                  { ...likedItem, likedByCurrentUser: true, likeCount: likedItem.likeCount + 1 },
-                ]);
-              }
-            } else {
-              // Remove from likedPost if unliked
-              setLikedPost((prev: any) => prev.filter((p: any) => p.id !== postId));
-            }
-          } else if (tab === "history") {
-            // Remove immediately from history if unliked
-            if (liked) {
-              setLikedPost((prev: any) => prev.filter((p: any) => p.id !== postId));
-
-              // Also update post tab
-              setPost((prev: any) =>
-                prev.map((p: any) =>
-                  p.id === postId
-                    ? { ...p, likedByCurrentUser: false, likeCount: p.likeCount - 1 }
-                    : p
-                )
-              );
-            }
-          }
-        } else {
-          res.text().then(msg => console.error(msg));
-        }
-      })
-      .catch(err => console.error(err));
-  };
 
   return (
     <div className="flex w-screen justify-center items-start h-full p-24">
@@ -214,7 +153,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
           {activeTab === "post" ?
             (
               <div className="py-10 flex flex-col gap-10">
-                {post?.map(p => {
+                {news?.map(p => {
                   return (
                     <Card className="overflow-hidden">
                       <CardHeader>
@@ -230,7 +169,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                       <CardFooter>
                         <Button
                           variant={"ghost"}
-                          onClick={() => handleLikeClick(p.id, p.likedByCurrentUser, "post")}
+                          onClick={(e) => handleLikeClick(e, p, p.likedByCurrentUser, setNews, "multiple", setLikedNews, news)}
                           className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
                         >
                           <FontAwesomeIcon
@@ -283,7 +222,7 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                     Recent Likes
                   </h2>
                   <ul className="list-disc pl-6 space-y-3 text-gray-700">
-                    {likedPost?.map(p => {
+                    {likedNews?.map(p => {
                       return (
                         <Card className="overflow-hidden">
                           <CardHeader>
@@ -294,12 +233,12 @@ export default function Profile(props: { user: any; onLogout: () => void; dispat
                           <CardContent>
                             {/* <p>Card Content</p> */}
                             {/* we do img if theres any, ONLY IMG FROM API WE WONT DO IMG IN DB🙏 */}
-                            {p.img ? <img src="/vite.svg" alt="" className="w-3xs m-auto" /> : <></>}
+                            {p.img ? <img src={p.img} alt="" className="w-3xs m-auto" /> : <></>}
                           </CardContent>
                           <CardFooter>
                             <Button
                               variant={"ghost"}
-                              onClick={() => handleLikeClick(p.id, p.likedByCurrentUser, "history")}
+                              onClick={(e) => handleLikeClick(e, p, p.likedByCurrentUser, setNews, "multiple", setLikedNews, news)}
                               className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
                             >
                               <FontAwesomeIcon

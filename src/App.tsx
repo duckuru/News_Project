@@ -13,7 +13,6 @@ function App() {
   //state for open and close dialog(login, signup dialog)
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [postOpen, setPostOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,25 +89,9 @@ function App() {
       });
   }
 
-  const handleNewsPost = (headline: string, content: string) => {
-    console.log(headline, content);
-    fetch('http://localhost:8080/post/', {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ headline, content })
-    }).then(res => res.json())
-      .then(data => {
-        console.log(data);
-        setPostOpen(false);
-    });
-  }
-
   return (
     <BrowserRouter>
-      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen} onPost={handleNewsPost} postOpen={postOpen} setPostOpen={setPostOpen}/>
+      <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen}/>
       <Routes>
         <Route path='/' element={<Home user={state} isLoading={isLoading}/>}></Route>
         <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch} isLoading={isLoading}/>}></Route>

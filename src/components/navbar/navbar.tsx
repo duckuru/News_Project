@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { NewsContext } from "@/context/NewsContext";
 import { Link } from "react-router"; // use react-router-dom instead of react-router
 import {
   Dialog,
@@ -34,10 +35,9 @@ export default function Navbar(props: {
   setLoginOpen: any;
   signupOpen: any;
   setSignupOpen: any;
-  onPost: any;
-  postOpen: any;
-  setPostOpen: any;
 }) {
+
+  const { news, setNews } = useContext(NewsContext);
   //TODO: show error message, especially "name already exist";
   //extract prop
   const {
@@ -48,9 +48,6 @@ export default function Navbar(props: {
     setLoginOpen,
     signupOpen,
     setSignupOpen,
-    onPost,
-    postOpen,
-    setPostOpen,
   } = props;
 
   //login usestate
@@ -67,7 +64,11 @@ export default function Navbar(props: {
 
   //news useState
   const [headline, setHeadline] = useState("");
+  const [postCategory, setPostCategory] = useState("");
   const [content, setContent] = useState("");
+
+  // post dialog state
+  const [postOpen, setPostOpen] = useState(false);
 
   const handleLoginClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -79,10 +80,22 @@ export default function Navbar(props: {
     onSignup(username, password, conpassword);
   };
 
-  const handleNewsPost = (e: { preventDefault: () => void }) => {
+  const handleNewsPost = (e) => {
+    console.log(headline, postCategory, content);
     e.preventDefault();
-    onPost(headline, content);
-  };
+    fetch('http://localhost:8080/post/', {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ headline, category: postCategory, content })
+    }).then(res => res.json())
+      .then(data => {
+        console.log(data);
+        setPostOpen(false);
+      });
+  }
 
   const searchWithCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault(); // stop form from reloading page
@@ -98,9 +111,10 @@ export default function Navbar(props: {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/search?query=${encodeURIComponent(
+        `http://localhost:8080/post/search?query=${encodeURIComponent(
           searchParam
-        )}&category=${category}`
+        )}&category=${category}`,
+        { credentials: "include" }
       );
 
       if (!response.ok) {
@@ -108,6 +122,7 @@ export default function Navbar(props: {
       }
 
       const data = await response.json();
+      setNews(data);
       console.log("Search Results:", data);
       // TODO: Pass this data to a parent state or display it on the page
     } catch (error) {
@@ -137,6 +152,7 @@ export default function Navbar(props: {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Categories</SelectLabel>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="business">Business</SelectItem>
               <SelectItem value="entertainment">Entertainment</SelectItem>
               <SelectItem value="general">General</SelectItem>
@@ -159,7 +175,7 @@ export default function Navbar(props: {
       </div>
       {user.user ? (
         <>
-          <Dialog open={postOpen} onOpenChange={setPostOpen}>
+          <Dialog open={postOpen} onOpenChange={() => { setPostCategory(""); setPostOpen(!postOpen) }}>
             <DialogTrigger asChild>
               <FontAwesomeIcon icon={faPlus} style={{ color: "#3f3f3f" }} />
               {/* <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setLoginOpen(true)}>Login</Button> */}
@@ -186,6 +202,23 @@ export default function Navbar(props: {
                     maxLength={60}
                   />
                 </div>
+                <Select onValueChange={(value) => setPostCategory(value)}>
+                  <SelectTrigger className="w-[12rem] border-2 h-12">
+                    <SelectValue placeholder="Select a Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Categories</SelectLabel>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="entertainment">Entertainment</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="health">Health</SelectItem>
+                      <SelectItem value="science">Science</SelectItem>
+                      <SelectItem value="sports">Sports</SelectItem>
+                      <SelectItem value="technology">Technology</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 <div className="grid gap-3">
                   <Label htmlFor="news-content">Content</Label>
                   <Textarea

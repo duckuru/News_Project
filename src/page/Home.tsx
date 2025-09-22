@@ -10,29 +10,14 @@ import {
 } from "@/components/ui/card";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext} from "react";
 import { useNavigate } from "react-router";
-import { UserContext } from "@/context/UserContext";
-
-// interface Post {
-//   id: string;
-//   headline: string;
-//   date: string;
-//   img?: string;
-//   likes?: number; // Assuming your post might have likes count from backend
-//   isLiked?: boolean; // Assuming your post might have liked status from backend
-// }
-
-// interface LikeState {
-//   [postId: string]: {
-//     isLiked: boolean;
-//     likeCount: number;
-//   };
-// }
+import { handleLikeClick } from "@/function/LikeFunction";
+import { NewsContext } from "@/context/NewsContext";
 
 export default function Home(props: { user: any; isLoading: any; }) {
   const { user, isLoading } = props;
-  const [news, setNews] = useState();
+  const {news, setNews} = useContext(NewsContext); //use context to set news when searching between the navbar and showing it on home page
   const navigate = useNavigate();
 
   const isAuth = !!user?.user;
@@ -40,52 +25,19 @@ export default function Home(props: { user: any; isLoading: any; }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const userId = user?.user?.id; // could be undefined if not logged in
-
-    fetch(`http://localhost:8080/post/?userId=${userId || ''}`, {
+    fetch(`http://localhost:8080/post/?userId=${user?.user?.id || ''}`, {
       credentials: 'include'
     })
       .then(res => res.json())
       .then((data) => {
         console.log(data);
         setNews(data);
+        // dispatch({type: 'SET_NEWS', payload: data});
       })
       .catch(error => {
         console.error('Error fetching news:', error);
       });
   }, [user, isLoading]);
-
-  // Like/unlike handler
-  const handleLikeClick = (e: React.MouseEvent, postId: number, liked: boolean) => {
-    e.stopPropagation(); // prevent card navigation
-
-    const url = `http://localhost:8080/post/${liked ? "unlike" : "like"}`;
-
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ postId }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          setNews((prev) =>
-            prev.map((p) =>
-              p.id === postId
-                ? {
-                  ...p,
-                  likedByCurrentUser: !liked,
-                  likeCount: liked ? p.likeCount - 1 : p.likeCount + 1,
-                }
-                : p
-            )
-          );
-        } else {
-          res.text().then((msg) => console.error(msg));
-        }
-      })
-      .catch((err) => console.error(err));
-  };
 
   return (
     <main className="home-page flex flex-col justify-center m-auto w-4xl overflow-hidden gap-3 p-8">
@@ -119,7 +71,7 @@ export default function Home(props: { user: any; isLoading: any; }) {
           <CardFooter>
             {isAuth ? (
               <Button
-                onClick={(e) => handleLikeClick(e, post.id, post.likedByCurrentUser)}
+                onClick={(e) => handleLikeClick(e, post, post.likedByCurrentUser, setNews, 'multiple')}
                 variant="ghost"
                 className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
               >
