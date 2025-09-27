@@ -46,6 +46,7 @@ interface Post {
 
 export default function ProfilePosts({ user }: { user: any }) {
   const [news, setNews] = useState<Post[]>([]);
+  const [postId, setPostId] = useState("");
   const [headline, setHeadline] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
@@ -63,6 +64,7 @@ export default function ProfilePosts({ user }: { user: any }) {
       )
         .then((res) => res.json())
         .then((data) => {
+          console.log(data);
           setNews(data);
         });
     };
@@ -72,8 +74,9 @@ export default function ProfilePosts({ user }: { user: any }) {
     }
   }, [user]);
 
-  const handleUpdatePost = async (id: string) => {
-    fetch(`http://localhost:8080/post/${id}`, {
+  //change from passing id, to using usestate cuz shadcdn dialog thing makes the p.id change
+  const handleUpdatePost = async () => {
+    fetch(`http://localhost:8080/post/${postId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -84,6 +87,7 @@ export default function ProfilePosts({ user }: { user: any }) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
+        setPostId("");
         setHeadline("");
         setContent("");
         setCategory("");
@@ -138,7 +142,7 @@ export default function ProfilePosts({ user }: { user: any }) {
             )}
           </CardContent>
           <CardFooter>
-            <div className="space-x-4">
+            <div className="space-x-4 flex items-center">
               <Button
                 variant={"ghost"}
                 onClick={(e) =>
@@ -167,10 +171,12 @@ export default function ProfilePosts({ user }: { user: any }) {
               <Dialog
                 open={editPostOpen}
                 onOpenChange={() => {
+                  setPostId(p.id);
                   setHeadline(p.headline);
                   setContent(p.content);
                   setCategory(p.category);
                   setEditPostOpen(!editPostOpen);
+                  console.log(p.id);
                 }}
               >
                 <DialogTrigger asChild>
@@ -182,7 +188,7 @@ export default function ProfilePosts({ user }: { user: any }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-3xl">
+                    <DialogTitle className="text-center text-3xl" onClick={() => console.log(postId)}>
                       Update Post
                     </DialogTitle>
                     <DialogDescription>
@@ -234,7 +240,7 @@ export default function ProfilePosts({ user }: { user: any }) {
                     <DialogFooter className="grid gap-2 w-full">
                       <Button
                         className="w-full p-3"
-                        onClick={() => handleUpdatePost(p.id)}
+                        onClick={() => {console.log(p.id, postId); handleUpdatePost()}}
                         type="button"
                       >
                         Update

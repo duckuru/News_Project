@@ -67,7 +67,8 @@ export default function LikeHistory({ user }: { user: any }) {
                     p,
                     p.likedByCurrentUser,
                     setLikedNews,
-                    "multiple"
+                    "multiple",
+                    setLikedNews
                   )
                 }
                 className="hover:bg-transparent hover:text-[1.2rem] cursor-pointer"
