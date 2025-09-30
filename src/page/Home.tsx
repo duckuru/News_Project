@@ -11,7 +11,7 @@ import {
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { handleLikeClick } from "@/function/LikeFunction";
 import { NewsContext } from "@/context/NewsContext";
 import {
@@ -27,6 +27,7 @@ import {
 export default function Home(props: { user: any; isLoading: any; }) {
   const { user, isLoading } = props;
   const { news, setNews } = useContext(NewsContext);
+  const location = useLocation();
   const navigate = useNavigate();
 
   const isAuth = !!user?.user;
@@ -38,22 +39,25 @@ export default function Home(props: { user: any; isLoading: any; }) {
   useEffect(() => {
     if (isLoading) return;
 
-    fetch(`http://localhost:8080/post/?userId=${user?.user?.id || ''}`, {
-      credentials: 'include'
-    })
-      .then(res => res.json())
-      .then((data) => {
-        console.log("Fetch news", data);
-        const processed = data.map((post: any, index: number) => ({
-          ...post,
-          tempId: post.id || `external-${index}`,
-          likedByCurrentUser: post.likedByCurrentUser || false,
-        }));
-        setNews(processed);
+    if(!location.state?.query){
+      fetch(`http://localhost:8080/post/?userId=${user?.user?.id || ''}`, {
+        credentials: 'include'
       })
-      .catch(error => {
-        console.error('Error fetching news:', error);
-      });
+        .then(res => res.json())
+        .then((data) => {
+          console.log("Fetch news", data);
+          const processed = data.map((post: any, index: number) => ({
+            ...post,
+            tempId: post.id || `external-${index}`,
+            likedByCurrentUser: post.likedByCurrentUser || false,
+          }));
+          setNews(processed);
+        })
+        .catch(error => {
+          console.error('Error fetching news:', error);
+        });
+    }
+
   }, [user, isLoading]);
 
   // Calculate pagination data

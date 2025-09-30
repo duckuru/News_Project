@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { NewsContext } from "@/context/NewsContext";
-import { Link } from "react-router"; // updated import
+import { Link, useLocation, useNavigate } from "react-router"; // updated import
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"; // removed faPlus
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
 
 export default function Navbar(props: {
   onLogin: any;
@@ -51,6 +50,9 @@ export default function Navbar(props: {
   const [searchParam, setSearchParam] = useState("");
   const [category, setCategory] = useState("");
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const handleLoginClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     onLogin(loginUsername, loginPassword);
@@ -63,6 +65,9 @@ export default function Navbar(props: {
 
   const searchWithCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if(location.pathname != '/'){
+      navigate('/', { state: {query: true}});
+    }
     if (!searchParam && !category) {
       alert("Please enter a search term or select a category.");
       return;
@@ -102,6 +107,11 @@ export default function Navbar(props: {
           className="w-[25rem] h-12 border-2"
           value={searchParam}
           onChange={(e) => setSearchParam(e.target.value)}
+          onKeyDown={(e) => {
+            if(e.key == 'Enter'){
+              searchWithCategory();
+            }
+          }}
         />
         <Select onValueChange={(value) => setCategory(value)}>
           <SelectTrigger className="w-[12rem] border-2 h-12">

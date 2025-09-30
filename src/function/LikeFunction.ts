@@ -2,18 +2,28 @@ export const handleLikeClick = (e: React.MouseEvent, post: any, liked: boolean, 
     e.stopPropagation(); // prevent card navigation
 
     const isExternal = !post.id;
+    let url = '';
+    let body = null;
+    let method = 'POST';
 
-    const url = isExternal ? 
-    `http://localhost:8080/post/likeExternal`        
-    : `http://localhost:8080/post/${liked ? "unlike" : "like"}`;
-
-    const body = isExternal ? post : {postId: post.id};
+    if(isExternal){
+        url = 'http://localhost:8080/post/likeExternal';
+        body = post;
+    } else{
+        if(liked){
+            url = `http://localhost:8080/post/unlike/${post.id}`;
+            method = 'DELETE'
+        } else{
+            url = 'http://localhost:8080/post/like';
+            body = {postId: post.id};
+        }
+    }
 
     fetch(url, {
-        method: "POST",
+        method: method,
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(body),
+        ...(body && method !== "DELETE" ? { body: JSON.stringify(body) } : {})
     })
         .then((res) => res.json())
         .then(savedPost => {
