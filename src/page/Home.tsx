@@ -11,7 +11,7 @@ import {
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect, useContext } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation, useSearchParams } from "react-router";
 import { handleLikeClick } from "@/function/LikeFunction";
 import { NewsContext } from "@/context/NewsContext";
 import {
@@ -24,11 +24,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-export default function Home(props: { user: any; isLoading: any; }) {
-  const { user, isLoading } = props;
+export default function Home(props: { user: any; isLoading: any;}) {
+  const { user, isLoading} = props;
   const { news, setNews } = useContext(NewsContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParam] = useSearchParams();
+  const query = searchParam?.get("query");
 
   const isAuth = !!user?.user;
 
@@ -39,7 +41,7 @@ export default function Home(props: { user: any; isLoading: any; }) {
   useEffect(() => {
     if (isLoading) return;
 
-    if(!location.state?.query){
+    if(!query){
       fetch(`http://localhost:8080/post/?userId=${user?.user?.id || ''}`, {
         credentials: 'include'
       })
@@ -58,7 +60,7 @@ export default function Home(props: { user: any; isLoading: any; }) {
         });
     }
 
-  }, [user, isLoading]);
+  }, [user, isLoading, query]);
 
   // Calculate pagination data
   const indexOfLastPost = currentPage * postsPerPage;
@@ -117,10 +119,11 @@ export default function Home(props: { user: any; isLoading: any; }) {
           </div>
         )}
 
-        {/* Posts Count */}
+        {/* Posts Count, added condition to make it not show text on refresh(load with the news instead) */} 
+        {news?.length == 0 ? <></> :
         <div className="text-sm text-gray-600 mb-4">
           Showing {currentPosts.length} of {news?.length || 0} posts
-        </div>
+        </div>}
 
         {currentPosts.map((post) => (
           <Card

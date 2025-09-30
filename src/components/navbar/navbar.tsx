@@ -1,6 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NewsContext } from "@/context/NewsContext";
-import { Link, useLocation, useNavigate } from "react-router"; // updated import
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router"; // updated import
 import {
   Dialog,
   DialogContent,
@@ -47,8 +47,10 @@ export default function Navbar(props: {
   const [conpassword, setConPassword] = useState("");
 
   // search state
-  const [searchParam, setSearchParam] = useState("");
+  const [searchParams, setSearchParam] = useSearchParams();
   const [category, setCategory] = useState("");
+  const [value, setValue] = useState(""); //search input value
+  const query = searchParams.get("query");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,35 +65,44 @@ export default function Navbar(props: {
     onSignup(username, password, conpassword);
   };
 
+  //rework this too not cause refetch all news when clicking back, also shows query in browser url
   const searchWithCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if(location.pathname != '/'){
-      navigate('/', { state: {query: true}});
+      navigate('/');
+    } else{
+      setSearchParam({query: value, category: category != '' ? category : 'all'});
     }
-    if (!searchParam && !category) {
-      alert("Please enter a search term or select a category.");
+
+    if (!searchParams && !category) {
+      alert("Please enter a search term");
       return;
     }
-
-    console.log("Searching with:", { query: searchParam, category });
-
-    try {
-      const response = await fetch(
-        `http://localhost:8080/post/search?query=${encodeURIComponent(
-          searchParam
-        )}&category=${category === "all" ? "" : category}`,
-        { credentials: "include" }
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch search results");
-
-      const data = await response.json();
-      setNews(data);
-      console.log("Search Results:", data);
-    } catch (error) {
-      console.error(error);
-    }
   };
+
+  useEffect(() => {
+      const params = new URLSearchParams();
+
+      if(query){
+        params.append("query", query);
+      }
+
+      if(category != ''){
+        params.append("category", category);
+      } else{
+        params.append("category", "all");
+      }
+
+      fetch(`http://localhost:8080/post/search?${params.toString()}`,
+        { credentials: "include" }
+      ).then(res => {
+        if (!res.ok) throw new Error("Failed to fetch search results");
+        return res.json()
+      }).then(data => {
+        setNews(data);
+      })
+
+  }, [searchParams]);
 
   return (
     <div className="sticky top-0 z-50 w-screen bg-[#f3f3f3] px-8 shadow-md h-24 flex justify-between items-center">
@@ -105,8 +116,8 @@ export default function Navbar(props: {
         <Input
           placeholder="Search for news"
           className="w-[25rem] h-12 border-2"
-          value={searchParam}
-          onChange={(e) => setSearchParam(e.target.value)}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
             if(e.key == 'Enter'){
               searchWithCategory();
