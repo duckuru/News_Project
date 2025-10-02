@@ -6,6 +6,7 @@ import Home from './page/Home'
 import { UserContext } from './context/UserContext'
 import { useState, useEffect, useContext } from 'react'
 import NewsDetail from './page/NewsDetail'
+import TopNews from './page/TopNews'
 
 function App() {
   const { state, dispatch } = useContext(UserContext);
@@ -94,6 +95,7 @@ function App() {
       <Navbar onLogin={handleLoginClick} onSignup={handleSignupClick} user={state} loginOpen={loginOpen} setLoginOpen={setLoginOpen} signupOpen={signupOpen} setSignupOpen={setSignupOpen}/>
       <Routes>
         <Route path='/' element={<Home user={state} isLoading={isLoading}/>}></Route>
+        <Route path='/top' element={<TopNews user={state} isLoading={isLoading}/>}></Route>
         <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch} isLoading={isLoading}/>}></Route>
         <Route path='/news/:id' element={<NewsDetail user={state}/>}></Route>
       </Routes>

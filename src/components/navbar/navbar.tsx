@@ -111,6 +111,10 @@ export default function Navbar(props: {
         News App
       </Link>
 
+      <Link to="/top" className="text-2xl font-bold text-red-500 ml-8">
+        Top news!
+      </Link>
+
       {/* Search */}
       <div className="flex gap-4 items-center">
         <Input
