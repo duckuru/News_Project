@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route} from 'react-router'
-import Navbar from './components/navbar/Navbar'
+
 import './App.css'
 import Profile from './page/Profile'
 import Home from './page/Home'
@@ -7,6 +7,7 @@ import { UserContext } from './context/UserContext'
 import { useState, useEffect, useContext } from 'react'
 import NewsDetail from './page/NewsDetail'
 import TopNews from './page/TopNews'
+import Navbar from './components/navbar/navbar'
 
 function App() {
   const { state, dispatch } = useContext(UserContext);
@@ -97,7 +98,7 @@ function App() {
         <Route path='/' element={<Home user={state} isLoading={isLoading}/>}></Route>
         <Route path='/top' element={<TopNews user={state} isLoading={isLoading}/>}></Route>
         <Route path='/profile' element={<Profile user={state} onLogout={handleLogoutClick} dispatch={dispatch} isLoading={isLoading}/>}></Route>
-        <Route path='/news/:id' element={<NewsDetail user={state}/>}></Route>
+        <Route path='/news/:id' element={<NewsDetail user={state} key={location.pathname}/>}></Route>
       </Routes>
     </BrowserRouter>
   )

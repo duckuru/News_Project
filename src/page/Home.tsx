@@ -52,8 +52,10 @@ export default function Home(props: { user: any; isLoading: any;}) {
             ...post,
             tempId: post.id || `external-${index}`,
             likedByCurrentUser: post.likedByCurrentUser || false,
-          }));
-          setNews(processed);
+          }))
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  setNews(processed);
         })
         .catch(error => {
           console.error('Error fetching news:', error);
