@@ -11,7 +11,7 @@ import {
 import { faThumbsUp, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate, useLocation } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { handleLikeClick } from "@/function/LikeFunction";
 
 export default function NewsDetail(props: { user: any }) {
@@ -27,59 +27,82 @@ export default function NewsDetail(props: { user: any }) {
   //this is a single news object, not a list
   const [news, setNews] = useState({
     ...newsFromState,
-    likedByCurrentUser: newsFromState.likedByCurrentUser || false,
-    likeCount: newsFromState.likeCount || 0,
+    likedByCurrentUser: newsFromState?.likedByCurrentUser || false,
+    likeCount: newsFromState?.likeCount || 0,
   });
+
+  const [relatedNews, setRelatedNews] = useState();
+
+  function generateNewsApiQuery(title) {
+    const stopWords = new Set([
+      "the", "is", "a", "an", "and", "of", "to", "in", "on", "for", "its", "this",
+      "with", "by", "at", "from", "as", "are", "was", "be", "that", "it", "getting",
+      "first", "live", "has", "have", "will", "their", "his", "her", "they", "-", "–"
+    ]);
+
+    const words = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/gi, '') // remove punctuation
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.has(word));
+
+    const keywords = words.slice(0, 5); // limit to top 5
+    const query = keywords.join(' '); // use space for NewsAPI q param (not +)
+
+    return query;
+  }
+
 
   // no need like, check same category, random get?
   const handleRelatedPost = async () => {
-    const res = fetch(`http://localhost:8080/related-post}`, {
-        credentials: 'include'
+
+    const query = generateNewsApiQuery(news.headline);
+
+    console.log(query)
+
+    const res = fetch(`http://localhost:8080/post/search?query=${encodeURIComponent(query)}&category=all`, {
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then((data) => {
+        console.log("Fetch related news", data);
+        const processed = data.map((post: any, index: number) => ({
+          ...post,
+          tempId: post.id || `external-${index}`,
+          likedByCurrentUser: post.likedByCurrentUser || false,
+        }));
+        setRelatedNews(processed.slice(1, 5));
       })
-        .then(res => res.json())
-        .then((data) => {
-          console.log("Fetch related news", data);
-          const processed = data.map((post: any, index: number) => ({
-            ...post,
-            tempId: post.id || `external-${index}`,
-            likedByCurrentUser: post.likedByCurrentUser || false,
-          }));
-          setNews(processed);
-        })
-        .catch(error => {
-          console.error('Error fetching news:', error);
-        });
+      .catch(error => {
+        console.error('Error fetching news:', error);
+      });
   }
 
+  useEffect(() => {
+    handleRelatedPost();
+  }, [news]);
+
   return (
-<main className="w-screen grid grid-cols-[25%_50%_20%] gap-6 p-8">
-  {/* Left: Back Button */}
-  <div className="flex justify-end">
-    <Button
-      variant={"ghost"}
-      onClick={() => navigate(-1)}
-      className="hover:bg-[#f3f3f3] border-1 h-12 w-12 cursor-pointer"
-    >
-      <FontAwesomeIcon icon={faArrowLeft} size="xl" />
-    </Button>
-  </div>
+    <main className="w-screen grid grid-cols-[15%_1fr_20%] gap-6 p-8">
+      {/* Left: Back Button */}
+      <div className="flex justify-end">
+        <Button
+          variant={"ghost"}
+          onClick={() => navigate(-1)}
+          className="hover:bg-[#f3f3f3] border-1 h-12 w-12 cursor-pointer"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size="xl" />
+        </Button>
+      </div>
 
-  {/* Center: News Content */}
-  <div className="content">
-    <Card className="overflow-hidden cursor-pointer">
-      <CardHeader>
-        <CardTitle className="text-4xl">{news.headline}</CardTitle>
-        <CardDescription>News description...</CardDescription>
-        <CardAction>
-          {news.date ? new Date(news.date).toLocaleString() : ""}
-        </CardAction>
-      </CardHeader>
+      {/* Center: News Content */}
+      <div className="content">
+        <h1 className="text-6xl font-bold">{news.headline}</h1>
 
-      <CardContent>
-        {news.img && <img src={news.img} alt="" className="w-3xs m-auto" />}
-      </CardContent>
+        {news.date ? new Date(news.date).toLocaleString() : ""}
 
-      <CardFooter>
+        {news.img && <img src={news.img} alt="" className="w-5xl m-auto" />}
+
         {isAuth ? (
           <Button
             onClick={(e) =>
@@ -98,7 +121,7 @@ export default function NewsDetail(props: { user: any }) {
               icon={faThumbsUp}
               size="2xl"
               style={{
-                color: news.likedByCurrentUser ? "#1659df" : "#dcdfe5",
+                color: news?.likedByCurrentUser ? "#1659df" : "#dcdfe5",
                 transition: "color 0.2s ease-in-out",
               }}
             />
@@ -111,26 +134,26 @@ export default function NewsDetail(props: { user: any }) {
             Login to like this post
           </div>
         )}
-      </CardFooter>
-    </Card>
 
-    {/* Full Content */}
-    <div className="mt-4 whitespace-pre-line">{news.content}</div>
-  </div>
+        {/* Full Content */}
+        <div className="mt-4 whitespace-pre-line text-xl">{news.content}</div>
+      </div>
 
-  {/* Right: Related News */}
-  <div className="text-3xl font-bold flex justify-center flex-col">
-    <h2 className="mb-2 flex text-center justify-center">Related News</h2>
-    {/* map over this for related post, up to 5 */}
-    <Card className="w-full sticky top-8 p-4">
-      {/* Related content here */}
-      <CardTitle className="font-semibold text-xl">{news.headline}</CardTitle>
-      <CardContent>
-        {news.img && <img src={news.img} alt="" className="w-[10rem] m-auto" />}
-      </CardContent>
-    </Card>
-  </div>
-</main>
+      {/* Right: Related News */}
+      <div className="text-3xl font-bold flex justify-center flex-col">
+        <h2 className="mb-2 flex text-center justify-center text-blue-600">Related News</h2>
+        {relatedNews?.map(v =>
+          <Card className="w-full sticky top-8 p-4 cursor-pointer hover:bg-gray-100 transition-colors duration-200" onClick={() => {navigate(`/news/${v.headline}`, { state: { v } })}}>
+            {/* Related content here */}
+            <CardTitle className="font-semibold text-xl">{v.headline}</CardTitle>
+            <CardContent>
+              {v.img && <img src={v.img} alt="" className="w-[10rem] m-auto" />}
+            </CardContent>
+          </Card>
+        )}
+        {/* map over this for related post, up to 5 */}
+      </div>
+    </main>
 
   );
 }

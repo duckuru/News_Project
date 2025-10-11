@@ -14,15 +14,6 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router";
 import { handleLikeClick } from "@/function/LikeFunction";
 import { NewsContext } from "@/context/NewsContext";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 export default function TopNews(props: { user: any; isLoading: any;}) {
   const { user, isLoading} = props;
@@ -33,10 +24,6 @@ export default function TopNews(props: { user: any; isLoading: any;}) {
   const query = searchParam?.get("query");
 
   const isAuth = !!user?.user;
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 10;
 
   useEffect(() => {
     if (isLoading) return;
@@ -53,7 +40,7 @@ export default function TopNews(props: { user: any; isLoading: any;}) {
             tempId: post.id || `external-${index}`,
             likedByCurrentUser: post.likedByCurrentUser || false,
           }));
-          setNews(processed);
+          setNews(processed.slice(0, 12));
         })
         .catch(error => {
           console.error('Error fetching news:', error);
@@ -61,53 +48,6 @@ export default function TopNews(props: { user: any; isLoading: any;}) {
     }
 
   }, [user, isLoading, query]);
-
-  // Calculate pagination data
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = news?.slice(indexOfFirstPost, indexOfLastPost) || [];
-  const totalPages = Math.ceil((news?.length || 0) / postsPerPage);
-
-  // Generate page numbers to display
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      const startPage = Math.max(1, currentPage - 2);
-      const endPage = Math.min(totalPages, currentPage + 2);
-
-      if (startPage > 1) {
-        pageNumbers.push(1);
-        if (startPage > 2) {
-          pageNumbers.push('ellipsis-start');
-        }
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          pageNumbers.push('ellipsis-end');
-        }
-        pageNumbers.push(totalPages);
-      }
-    }
-
-    return pageNumbers;
-  };
-
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -118,10 +58,10 @@ export default function TopNews(props: { user: any; isLoading: any;}) {
 
         {/* Posts Count, added condition to make it not show text on refresh(load with the news instead) */} 
         <div className="grid grid-cols-3 w-full h-full p-4 gap-8">
-        {currentPosts.map((post) => (
+        {news?.map((post) => (
           <div className="relative">
-          <div className="absolute right-10 top-1">
-            {post.date ? new Date(post.date).toLocaleString() : ""}
+          <div className="absolute right-0 bottom-5 z-20">
+            {post.date && new Date(post.date).toLocaleString()}
           </div>
           <Card
             key={post.tempId}
@@ -174,45 +114,6 @@ export default function TopNews(props: { user: any; isLoading: any;}) {
           </div>
         ))}
         </div>
-
-        {/* Pagination Component */}
-        {totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-
-                {getPageNumbers().map((page, index) => (
-                  <PaginationItem key={index}>
-                    {page === 'ellipsis-start' || page === 'ellipsis-end' ? (
-                      <PaginationEllipsis />
-                    ) : (
-                      <PaginationLink
-                        onClick={() => handlePageChange(page as number)}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
-                    )}
-                  </PaginationItem>
-                ))}
-
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
       </main>
     </div>
   );
