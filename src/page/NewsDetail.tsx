@@ -80,6 +80,7 @@ export default function NewsDetail({ user }: { user: any }) {
       "–",
     ]);
 
+    //dont use word thats in the stopword to query
     const words = title
       .toLowerCase()
       .replace(/[^a-z0-9\s]/gi, "")
@@ -89,7 +90,9 @@ export default function NewsDetail({ user }: { user: any }) {
     return words.slice(0, 5).join(" ");
   }
 
+  //fetching related post function
   const handleRelatedPost = async (title: string) => {
+    //this will get the query
     const query = generateNewsApiQuery(title);
 
     try {
@@ -163,7 +166,7 @@ export default function NewsDetail({ user }: { user: any }) {
 
       {/* Related News */}
       <div className="text-3xl font-bold flex flex-col justify-center">
-        <h2 className="mb-2 text-center text-blue-600">Related News</h2>
+        <h2 className="mb-2 text-center text-blue-600">{relatedNews?.length == 0 ? 'No Related News' : 'Related News'}</h2>
 
         {relatedNews.map((post) => (
           <Card

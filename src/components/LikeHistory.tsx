@@ -12,6 +12,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { handleLikeClick } from "@/function/LikeFunction";
+import { useNavigate } from "react-router";
 
 interface Post {
   id: string;
@@ -24,6 +25,7 @@ interface Post {
 
 export default function LikeHistory({ user }: { user: any }) {
   const [likedNews, setLikedNews] = useState<Post[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLikeHistory = () => {
@@ -46,15 +48,20 @@ export default function LikeHistory({ user }: { user: any }) {
         Recent Likes
       </h2>
       <div className="space-y-6">
-        {likedNews?.map((p) => (
-          <Card key={p.id} className="overflow-hidden">
+        {likedNews?.map((post) => (
+          <Card
+            key={post.id}
+            className="overflow-hidden cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            onClick={() =>
+              navigate(`/news/${post.headline}`, { state: { post } })
+            }>
             <CardHeader>
-              <CardTitle className="text-4xl">{p.headline}</CardTitle>
-              <CardDescription>{p.content}</CardDescription>
+              <CardTitle className="text-4xl">{post.headline}</CardTitle>
+              <CardDescription>{post.content}</CardDescription>
               <CardAction>29/11/2025</CardAction>
             </CardHeader>
             <CardContent>
-              {p.img && <img src={p.img} alt="" className="w-3xs m-auto" />}
+              {post.img && <img src={post.img} alt="" className="w-3xs m-auto" />}
             </CardContent>
             <CardFooter>
               <Button
@@ -62,8 +69,8 @@ export default function LikeHistory({ user }: { user: any }) {
                 onClick={(e) =>
                   handleLikeClick(
                     e,
-                    p,
-                    p.likedByCurrentUser,
+                    post,
+                    post.likedByCurrentUser,
                     setLikedNews,
                     "multiple",
                     setLikedNews
@@ -75,10 +82,10 @@ export default function LikeHistory({ user }: { user: any }) {
                   icon={faThumbsUp}
                   size="2xl"
                   style={{
-                    color: p.likedByCurrentUser ? "#1659df" : "#dcdfe5",
+                    color: post.likedByCurrentUser ? "#1659df" : "#dcdfe5",
                   }}
                 />
-                {p.likeCount > 0 && <span className="ml-2">{p.likeCount}</span>}
+                {post.likeCount > 0 && <span className="ml-2">{post.likeCount}</span>}
               </Button>
             </CardFooter>
           </Card>

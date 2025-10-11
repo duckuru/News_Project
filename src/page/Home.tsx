@@ -27,7 +27,6 @@ import {
 export default function Home(props: { user: any; isLoading: any }) {
   const { user, isLoading } = props;
   const { news, setNews } = useContext(NewsContext);
-  const location = useLocation();
   const navigate = useNavigate();
   const [searchParam] = useSearchParams();
   const query = searchParam?.get("query");
@@ -48,6 +47,7 @@ export default function Home(props: { user: any; isLoading: any }) {
         .then((res) => res.json())
         .then((data) => {
           console.log("Fetch news", data);
+          //by processed, it is just sorting the date here
           const processed = data
             .map((post: any, index: number) => ({
               ...post,
@@ -73,29 +73,37 @@ export default function Home(props: { user: any; isLoading: any }) {
   const totalPages = Math.ceil((news?.length || 0) / postsPerPage);
 
   // Generate page numbers to display
+  //example of display page 1 2 3 . . . 10 (ellipsis-start is where "." start and end is where the "." end, which will be map and display)
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
 
+    //if total page is less than the maximum(5 in this case) dont add any ellipsis
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      const startPage = Math.max(1, currentPage - 2);
-      const endPage = Math.min(totalPages, currentPage + 2);
+      const startPage = Math.max(1, currentPage - 2); //change the start page depending on the current, which is higher
+      const endPage = Math.min(totalPages, currentPage + 2);  //end page, is not actually the last page, but the before of the ellipsis start,
+      //so if you are at current page 1, startpage will be 1, endPage will be 3, so in the site it is 1 2 3 ... 11 (totalpage is 11)
+      //if you are at current page 3, start page is 1, end page is 5, so in the site it is 1 2 3 4 5 ... 11
 
+      //when the startpage is more than 1(current page is 4 for example), 1 is pushed to array, but theres no ellipsis added so, 1 2 3
       if (startPage > 1) {
         pageNumbers.push(1);
+        //else if startpage is more than 2(current page is 5), 1 is pushed, then it will start with ..., example 1 ... 
         if (startPage > 2) {
           pageNumbers.push("ellipsis-start");
         }
       }
 
+      
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
 
+      //add trailing ellipsis
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
           pageNumbers.push("ellipsis-end");
@@ -107,6 +115,7 @@ export default function Home(props: { user: any; isLoading: any }) {
     return pageNumbers;
   };
 
+  //set the current page count, and scroll to top
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     // Scroll to top when page changes

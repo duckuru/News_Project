@@ -104,11 +104,21 @@ export default function Navbar(props: {
     }
   };
 
-  //rework this too not cause refetch all news when clicking back, also shows query in browser url
+  //reworked this to not cause refetch all news when clicking back, also shows query in browser url
   const searchWithCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (location.pathname != "/") {
-      navigate("/");
+
+    const params = new URLSearchParams({
+      query: value,
+      category: category !== "" ? category : "all",
+    }).toString();
+
+    //navigate to the pathname '/', with search params
+    if (location.pathname !== "/") {
+      navigate({
+        pathname: "/",
+        search: `?${params}`,
+      });
     } else {
       setSearchParam({
         query: value,
@@ -231,7 +241,7 @@ export default function Navbar(props: {
                 </DialogDescription>
               </DialogHeader>
               <form className="text-[#3f3f3f] grid gap-4">
-                <div className={`${loginError ? "bg-red-100 p-2 rounded": ""}`}>
+                <div className={`${loginError ? "bg-red-100 p-2 rounded" : ""}`}>
                   {loginError && (
                     <p className="text-red-500 text-sm">{loginError}</p>
                   )}
@@ -293,7 +303,7 @@ export default function Navbar(props: {
                 <DialogDescription>Create your account</DialogDescription>
               </DialogHeader>
               <form className="text-[#3f3f3f] grid gap-4">
-                <div className={`${signupError ? "bg-red-100 p-2 rounded": ""}`}>
+                <div className={`${signupError ? "bg-red-100 p-2 rounded" : ""}`}>
                   {signupError && (
                     <p className="text-red-500 text-sm">{signupError}</p>
                   )}

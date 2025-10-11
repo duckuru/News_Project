@@ -1,3 +1,4 @@
+//handling post like function
 export const handleLikeClick = (e: React.MouseEvent, post: any, liked: boolean, setter: any, data: any, likeSetter: any, news: any) => {
     e.stopPropagation(); // prevent card navigation
 
@@ -6,10 +7,12 @@ export const handleLikeClick = (e: React.MouseEvent, post: any, liked: boolean, 
     let body = null;
     let method = 'POST';
 
+    //if external(not in db, post from api are all external)
     if(isExternal){
         url = 'http://localhost:8080/post/likeExternal';
         body = post;
     } else{
+        //else(in db)
         if(liked){
             url = `http://localhost:8080/post/unlike/${post.id}`;
             method = 'DELETE'
@@ -27,7 +30,7 @@ export const handleLikeClick = (e: React.MouseEvent, post: any, liked: boolean, 
     })
         .then((res) => res.json())
         .then(savedPost => {
-                //if the data is a list
+                //if the data is a list(in home page, or top news, multiple data is displayed)
                 if (data == 'multiple') {
                     setter((prev) =>
                         prev.map((p) =>
