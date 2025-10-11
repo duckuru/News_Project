@@ -44,10 +44,40 @@ export default function NewsDetail({ user }: { user: any }) {
 
   function generateNewsApiQuery(title: string) {
     const stopWords = new Set([
-      "the", "is", "a", "an", "and", "of", "to", "in", "on", "for", "its", "this",
-      "with", "by", "at", "from", "as", "are", "was", "be", "that", "it",
-      "getting", "first", "live", "has", "have", "will", "their", "his",
-      "her", "they", "-", "–",
+      "the",
+      "is",
+      "a",
+      "an",
+      "and",
+      "of",
+      "to",
+      "in",
+      "on",
+      "for",
+      "its",
+      "this",
+      "with",
+      "by",
+      "at",
+      "from",
+      "as",
+      "are",
+      "was",
+      "be",
+      "that",
+      "it",
+      "getting",
+      "first",
+      "live",
+      "has",
+      "have",
+      "will",
+      "their",
+      "his",
+      "her",
+      "they",
+      "-",
+      "–",
     ]);
 
     const words = title
@@ -120,7 +150,9 @@ export default function NewsDetail({ user }: { user: any }) {
                 transition: "color 0.2s ease-in-out",
               }}
             />
-            {news.likeCount > 0 && <span className="ml-2">{news.likeCount}</span>}
+            {news.likeCount > 0 && (
+              <span className="ml-2">{news.likeCount}</span>
+            )}
           </Button>
         ) : (
           <div className="text-sm text-gray-500">Login to like this post</div>
@@ -141,9 +173,13 @@ export default function NewsDetail({ user }: { user: any }) {
               navigate(`/news/${post.headline}`, { state: { post } })
             }
           >
-            <CardTitle className="font-semibold text-xl">{post.headline}</CardTitle>
+            <CardTitle className="font-semibold text-xl">
+              {post.headline}
+            </CardTitle>
             <CardContent>
-              {post.img && <img src={post.img} alt="" className="w-[10rem] m-auto" />}
+              {post.img && (
+                <img src={post.img} alt="" className="w-[10rem] m-auto" />
+              )}
             </CardContent>
           </Card>
         ))}

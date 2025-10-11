@@ -35,7 +35,15 @@ export default function Navbar(props: {
   setSignupOpen: any;
 }) {
   const { news, setNews } = useContext(NewsContext);
-  const { onLogin, onSignup, user, loginOpen, setLoginOpen, signupOpen, setSignupOpen } = props;
+  const {
+    onLogin,
+    onSignup,
+    user,
+    loginOpen,
+    setLoginOpen,
+    signupOpen,
+    setSignupOpen,
+  } = props;
 
   // login state
   const [loginUsername, setLoginUsername] = useState("");
@@ -45,6 +53,9 @@ export default function Navbar(props: {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [conpassword, setConPassword] = useState("");
+  // login & signup errors
+  const [loginError, setLoginError] = useState("");
+  const [signupError, setSignupError] = useState("");
 
   // search state
   const [searchParams, setSearchParam] = useSearchParams();
@@ -55,23 +66,54 @@ export default function Navbar(props: {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLoginClick = (e: { preventDefault: () => void }) => {
+  const handleLoginClick = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(loginUsername, loginPassword);
+    setLoginError(""); // reset previous error
+
+    try {
+      const result = await onLogin(loginUsername, loginPassword);
+
+      // check if login failed
+      if (result.success === false) {
+        setLoginError(result.message || "Login failed");
+        return; // don't close dialog
+      }
+
+      // login success
+      setLoginOpen(false);
+    } catch (err: any) {
+      setLoginError(err.message || "Login failed");
+    }
   };
 
-  const handleSignupClick = (e: { preventDefault: () => void }) => {
+  const handleSignupClick = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSignup(username, password, conpassword);
+    setSignupError("");
+
+    try {
+      const result = await onSignup(username, password, conpassword);
+
+      if (result.success === false) {
+        setSignupError(result.message || "Signup failed");
+        return; // don't close dialog
+      }
+
+      setSignupOpen(false);
+    } catch (err: any) {
+      setSignupError(err.message || "Signup failed");
+    }
   };
 
   //rework this too not cause refetch all news when clicking back, also shows query in browser url
   const searchWithCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if(location.pathname != '/'){
-      navigate('/');
-    } else{
-      setSearchParam({query: value, category: category != '' ? category : 'all'});
+    if (location.pathname != "/") {
+      navigate("/");
+    } else {
+      setSearchParam({
+        query: value,
+        category: category != "" ? category : "all",
+      });
     }
 
     if (!searchParams && !category) {
@@ -81,27 +123,28 @@ export default function Navbar(props: {
   };
 
   useEffect(() => {
-      const params = new URLSearchParams();
+    const params = new URLSearchParams();
 
-      if(query){
-        params.append("query", query);
-      }
+    if (query) {
+      params.append("query", query);
+    }
 
-      if(category != ''){
-        params.append("category", category);
-      } else{
-        params.append("category", "all");
-      }
+    if (category != "") {
+      params.append("category", category);
+    } else {
+      params.append("category", "all");
+    }
 
-      fetch(`http://localhost:8080/post/search?${params.toString()}`,
-        { credentials: "include" }
-      ).then(res => {
+    fetch(`http://localhost:8080/post/search?${params.toString()}`, {
+      credentials: "include",
+    })
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch search results");
-        return res.json()
-      }).then(data => {
-        setNews(data);
+        return res.json();
       })
-
+      .then((data) => {
+        setNews(data);
+      });
   }, [searchParams]);
 
   return (
@@ -123,7 +166,7 @@ export default function Navbar(props: {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if(e.key == 'Enter'){
+            if (e.key == "Enter") {
               searchWithCategory();
             }
           }}
@@ -150,40 +193,80 @@ export default function Navbar(props: {
           className="bg-[#f3f3f3] hover:bg-[#e1e1e1] border-2 h-12 w-12 cursor-pointer"
           onClick={searchWithCategory}
         >
-          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ color: "#3f3f3f" }} />
+          <FontAwesomeIcon
+            icon={faMagnifyingGlass}
+            style={{ color: "#3f3f3f" }}
+          />
         </Button>
       </div>
 
       {user.user ? (
         <Link to="/profile">
-          <img src="/vite.svg" alt="" className="border border-black rounded-full p-2" />
+          <img
+            src="/vite.svg"
+            alt=""
+            className="border border-black rounded-full p-2"
+          />
         </Link>
       ) : (
         <span className="auth-btn">
           {/* Login Dialog */}
           <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="text-xl px-6 py-3 mr-3" onClick={() => setLoginOpen(true)}>
+              <Button
+                variant="outline"
+                className="text-xl px-6 py-3 mr-3"
+                onClick={() => setLoginOpen(true)}
+              >
                 Login
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle className="text-center text-3xl">Login</DialogTitle>
-                <DialogDescription>Enter your username and password to log in.</DialogDescription>
+                <DialogTitle className="text-center text-3xl">
+                  Login
+                </DialogTitle>
+                <DialogDescription>
+                  Enter your username and password to log in.
+                </DialogDescription>
               </DialogHeader>
               <form className="text-[#3f3f3f] grid gap-4">
+                <div className={`${loginError ? "bg-red-100 p-2 rounded": ""}`}>
+                  {loginError && (
+                    <p className="text-red-500 text-sm">{loginError}</p>
+                  )}
+                </div>
                 <div className="grid gap-3">
                   <Label htmlFor="login-username">Username</Label>
-                  <Input id="login-username" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)} autoFocus />
+                  <Input
+                    id="login-username"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                    autoFocus
+                  />
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input id="login-password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
                 </div>
                 <DialogFooter className="grid gap-2 w-full">
-                  <Button className="w-full p-3" onClick={handleLoginClick}>Login</Button>
-                  <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => { setLoginOpen(false); setSignupOpen(true); }}>
+                  <Button className="w-full p-3" onClick={handleLoginClick}>
+                    Login
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-sm"
+                    onClick={() => {
+                      setLoginOpen(false);
+                      setSignupOpen(true);
+                    }}
+                  >
                     Don't have an account? Sign Up
                   </Button>
                 </DialogFooter>
@@ -194,29 +277,67 @@ export default function Navbar(props: {
           {/* Signup Dialog */}
           <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="text-xl px-6 py-3" onClick={() => setSignupOpen(true)}>Sign Up</Button>
+              <Button
+                variant="outline"
+                className="text-xl px-6 py-3"
+                onClick={() => setSignupOpen(true)}
+              >
+                Sign Up
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle className="text-center text-3xl">Sign Up</DialogTitle>
+                <DialogTitle className="text-center text-3xl">
+                  Sign Up
+                </DialogTitle>
                 <DialogDescription>Create your account</DialogDescription>
               </DialogHeader>
               <form className="text-[#3f3f3f] grid gap-4">
+                <div className={`${signupError ? "bg-red-100 p-2 rounded": ""}`}>
+                  {signupError && (
+                    <p className="text-red-500 text-sm">{signupError}</p>
+                  )}
+                </div>
                 <div className="grid gap-3">
                   <Label htmlFor="signup-username">Username</Label>
-                  <Input id="signup-username" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
+                  <Input
+                    id="signup-username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    autoFocus
+                  />
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="signup-confirm">Confirm Password</Label>
-                  <Input id="signup-confirm" type="password" value={conpassword} onChange={(e) => setConPassword(e.target.value)} />
+                  <Input
+                    id="signup-confirm"
+                    type="password"
+                    value={conpassword}
+                    onChange={(e) => setConPassword(e.target.value)}
+                  />
                 </div>
                 <DialogFooter className="grid gap-2 w-full">
-                  <Button className="w-full py-3" onClick={handleSignupClick}>Register</Button>
-                  <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => { setSignupOpen(false); setLoginOpen(true); }}>
+                  <Button className="w-full py-3" onClick={handleSignupClick}>
+                    Register
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-sm"
+                    onClick={() => {
+                      setSignupOpen(false);
+                      setLoginOpen(true);
+                    }}
+                  >
                     Already have an account? Login
                   </Button>
                 </DialogFooter>

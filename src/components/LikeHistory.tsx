@@ -54,9 +54,7 @@ export default function LikeHistory({ user }: { user: any }) {
               <CardAction>29/11/2025</CardAction>
             </CardHeader>
             <CardContent>
-              {p.img && (
-                <img src={p.img} alt="" className="w-3xs m-auto" />
-              )}
+              {p.img && <img src={p.img} alt="" className="w-3xs m-auto" />}
             </CardContent>
             <CardFooter>
               <Button
@@ -80,9 +78,7 @@ export default function LikeHistory({ user }: { user: any }) {
                     color: p.likedByCurrentUser ? "#1659df" : "#dcdfe5",
                   }}
                 />
-                {p.likeCount > 0 && (
-                  <span className="ml-2">{p.likeCount}</span>
-                )}
+                {p.likeCount > 0 && <span className="ml-2">{p.likeCount}</span>}
               </Button>
             </CardFooter>
           </Card>
