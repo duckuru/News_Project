@@ -1,3 +1,4 @@
+# Lim Panharoth, Sok Chandarath, Tae Sivlong
 # News App
 News App is designed to provide users the latest, top, and trustworthy news
 
