@@ -138,13 +138,13 @@ export default function Navbar(props: {
     if (query) {
       params.append("query", query);
     }
+    if(params.toString() === "") return;
 
     if (category != "") {
       params.append("category", category);
     } else {
       params.append("category", "all");
     }
-
     fetch(`http://localhost:8080/post/search?${params.toString()}`, {
       credentials: "include",
     })

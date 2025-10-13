@@ -29,6 +29,7 @@ export default function NewsDetail({ user }: { user: any }) {
         likedByCurrentUser: updatedPost.likedByCurrentUser || false,
         likeCount: updatedPost.likeCount || 0,
       });
+      console.log(updatedPost);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [location.state?.post]);
@@ -134,16 +135,20 @@ export default function NewsDetail({ user }: { user: any }) {
       </div>
 
       {/* Main Content */}
-      <div className="content">
+      <div className="content max-w-4xl">
         <h1 className="text-6xl font-bold">{news.headline}</h1>
-        {news.date && <p>{new Date(news.date).toLocaleString()}</p>}
+        <span className="flex justify-between my-4">
+          {news.author ? <h3 className="etxt-3xl font-semibold">Author: {news?.author}</h3>: ""}
+          {/* <h3 className="etxt-3xl font-semibold">Author: {news?.author}</h3> */}
+          {news.date && <p>Date: {new Date(news.date).toLocaleString()}</p>}
+        </span>
         {news.img && <img src={news.img} alt="" className="w-5xl m-auto" />}
 
         {isAuth ? (
           <Button
             onClick={handleLike} // ✅ use the memoized callback
             variant="ghost"
-            className="hover:bg-transparent cursor-pointer"
+            className="hover:bg-transparent cursor-pointer mt-4"
           >
             <FontAwesomeIcon
               icon={faThumbsUp}
@@ -154,7 +159,7 @@ export default function NewsDetail({ user }: { user: any }) {
               }}
             />
             {news.likeCount > 0 && (
-              <span className="ml-2">{news.likeCount}</span>
+              <span className="">{news.likeCount}</span>
             )}
           </Button>
         ) : (
@@ -165,8 +170,8 @@ export default function NewsDetail({ user }: { user: any }) {
       </div>
 
       {/* Related News */}
-      <div className="text-3xl font-bold flex flex-col justify-center">
-        <h2 className="mb-2 text-center text-blue-600">{relatedNews?.length == 0 ? 'No Related News' : 'Related News'}</h2>
+      <div className="text-3xl font-bold flex flex-col justify-start">
+        <h2 className="mb-2 text-center text-blue-600">{relatedNews?.length == 0 ? '' : 'Related News'}</h2>
 
         {relatedNews.map((post) => (
           <Card
